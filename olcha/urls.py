@@ -1,7 +1,7 @@
 
 from django.urls import path
 from olcha.views import CategoryListCreateView, CategoryDetailView, ProductDetailView, \
-    GroupListCreateView, GroupDetailView, ProductListCreateView, ProductCreateAPIView
+    GroupListCreateView, GroupDetailView, ProductListCreateView, ProductCreateAPIView, AllProductsView, ImageListApiView
 
 urlpatterns = [
     path('api/category/', CategoryListCreateView.as_view(), name='category_list_create'),
@@ -11,5 +11,7 @@ urlpatterns = [
     path('api/category/<slug:category_slug>/group/<slug:group_slug>/product/', ProductListCreateView.as_view(), name='product_list_create'),
     path('api/category/<slug:category_slug>/group/<slug:group_slug>/product/<slug:slug>/', ProductDetailView.as_view(), name='product_detail'),
     path('productcreate/',ProductCreateAPIView.as_view(), name='product_create'),
+    path('all-products/',AllProductsView.as_view(), name='all_products'),
+    path('all-images/', ImageListApiView.as_view(), name='all_images')
 
 ]

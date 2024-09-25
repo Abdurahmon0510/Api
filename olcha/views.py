@@ -8,7 +8,7 @@
 #
 # from olcha.models import Book
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, RetrieveUpdateDestroyAPIView, \
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, \
     RetrieveUpdateAPIView, RetrieveDestroyAPIView, ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -80,8 +80,8 @@ from rest_framework.views import APIView
 #               return JsonResponse(data, status=status.HTTP_201_CREATED)
 #           return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-from .models import Category, Group, Product
-from .serializers import CategorySerializer, ProductSerializer, GroupSerializer
+from .models import Category, Group, Product, Image
+from .serializers import CategorySerializer, ProductSerializer, GroupSerializer, ProductImageSerializer
 
 
 #
@@ -161,10 +161,14 @@ class ProductListCreateView(ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-class ProductCreateAPIView(APIView):
-     parser_classes = [MultiPartParser, FormParser]
+    def get_serializer_context(self):
+        return {'request': self.request}
 
-     def post(self, request, *args, **kwargs):
+
+class ProductCreateAPIView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, *args, **kwargs):
         serializer = ProductSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -172,7 +176,7 @@ class ProductCreateAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-     def get_queryset(self):
+    def get_queryset(self):
         group_slug = self.kwargs['group_slug']
         return Product.objects.filter(group__slug=group_slug)
 
@@ -181,3 +185,12 @@ class ProductDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     lookup_field = 'slug'
+
+
+class AllProductsView(ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+class ImageListApiView(ListAPIView):
+      queryset = Image.objects.all()
+      serializer_class = ProductImageSerializer
