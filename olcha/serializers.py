@@ -1,6 +1,6 @@
 from django.db.models import Avg
 from rest_framework import serializers
-from .models import Category, Group, Product, Image, Comment
+from .models import Category, Group, Product, Image, Comment, ProductAttribute, AttributeKey, AttributeValue
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -50,9 +50,37 @@ class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
         fields = '__all__'
+class AttributeValueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AttributeValue
+        fields = '__all__'
 
+
+class AttributeKeySerializer(serializers.ModelSerializer):
+    values = AttributeValueSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = AttributeKey
+        fields = '__all__'
+
+
+class ProductAttributeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductAttribute
+        exclude = ('id','product','attr_key','attr_value')
+
+    def to_representation(self, instance):
+        context = super(ProductAttributeSerializer, self).to_representation(instance)
+        context['key_id'] = instance.attr_key.id
+        context['key_name'] = instance.attr_key.key_name
+
+        context['value_id'] = instance.attr_value.id
+        context['value_name'] = instance.attr_value.value_name
+        return context
 class ProductSerializer(serializers.ModelSerializer):
     # images = ProductImageSerializer(many=True, read_only=True)
+    attributes = ProductAttributeSerializer(many=True,read_only=True)
+
     all_images = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()

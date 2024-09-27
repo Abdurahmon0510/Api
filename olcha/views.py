@@ -80,8 +80,9 @@ from rest_framework.views import APIView
 #               return JsonResponse(data, status=status.HTTP_201_CREATED)
 #           return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-from .models import Category, Group, Product, Image
-from .serializers import CategorySerializer, ProductSerializer, GroupSerializer, ProductImageSerializer
+from .models import Category, Group, Product, Image, AttributeKey, AttributeValue, ProductAttribute
+from .serializers import CategorySerializer, ProductSerializer, GroupSerializer, ProductImageSerializer, \
+    AttributeKeySerializer, AttributeValueSerializer, ProductAttributeSerializer
 
 
 #
@@ -194,3 +195,22 @@ class AllProductsView(ListAPIView):
 class ImageListApiView(ListAPIView):
       queryset = Image.objects.all()
       serializer_class = ProductImageSerializer
+
+class AttributeKeyListCreateView(ListCreateAPIView):
+    queryset = AttributeKey.objects.all()
+    serializer_class = AttributeKeySerializer
+
+
+
+class AttributeValueListCreateView(ListCreateAPIView):
+    queryset = AttributeValue.objects.all()
+    serializer_class = AttributeValueSerializer
+
+
+
+
+class ProductAttributeListCreateView(ListCreateAPIView):
+    queryset = ProductAttribute.objects.all()
+    serializer_class = ProductAttributeSerializer
+
+

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from olcha.models import Category, Group, Product, Image, Comment
+from olcha.models import Category, Group, Product, Image, Comment, AttributeKey,AttributeValue,ProductAttribute
 
 
 # Register your models here.
@@ -34,3 +34,8 @@ class ImageAdmin(admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
       list_display = ('user', )
       list_filter = ('user',)
+
+
+admin.site.register(AttributeKey)
+admin.site.register(AttributeValue)
+admin.site.register(ProductAttribute)
