@@ -7,10 +7,15 @@
 # from rest_framework.views import APIView
 #
 # from olcha.models import Book
-from rest_framework import status
+from django.contrib.auth.models import User
+from rest_framework import status, generics
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, \
     RetrieveUpdateAPIView, RetrieveDestroyAPIView, ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -82,7 +87,7 @@ from rest_framework.views import APIView
 
 from .models import Category, Group, Product, Image, AttributeKey, AttributeValue, ProductAttribute
 from .serializers import CategorySerializer, ProductSerializer, GroupSerializer, ProductImageSerializer, \
-    AttributeKeySerializer, AttributeValueSerializer, ProductAttributeSerializer
+    AttributeKeySerializer, AttributeValueSerializer, ProductAttributeSerializer, UserSerializer
 
 
 #
@@ -160,7 +165,9 @@ class GroupDetailView(RetrieveDestroyAPIView):
 
 class ProductListCreateView(ListCreateAPIView):
     queryset = Product.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = ProductSerializer
+    authentication_classes = [BasicAuthentication]
 
     def get_serializer_context(self):
         return {'request': self.request}
@@ -192,14 +199,15 @@ class AllProductsView(ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+
 class ImageListApiView(ListAPIView):
-      queryset = Image.objects.all()
-      serializer_class = ProductImageSerializer
+    queryset = Image.objects.all()
+    serializer_class = ProductImageSerializer
+
 
 class AttributeKeyListCreateView(ListCreateAPIView):
     queryset = AttributeKey.objects.all()
     serializer_class = AttributeKeySerializer
-
 
 
 class AttributeValueListCreateView(ListCreateAPIView):
@@ -207,10 +215,33 @@ class AttributeValueListCreateView(ListCreateAPIView):
     serializer_class = AttributeValueSerializer
 
 
-
-
 class ProductAttributeListCreateView(ListCreateAPIView):
     queryset = ProductAttribute.objects.all()
     serializer_class = ProductAttributeSerializer
 
 
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (AllowAny,)
+
+
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key})
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            request.user.auth_token.delete()
+            return Response(status=204)
+        except AttributeError:
+            return Response({'error': 'User has no auth_token.'}, status=400)
