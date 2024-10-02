@@ -18,6 +18,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # # Create your views here.
 # def index(request):
@@ -138,17 +139,26 @@ from .serializers import CategorySerializer, ProductSerializer, GroupSerializer,
 
 
 class CategoryListCreateView(ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
 class CategoryDetailView(RetrieveUpdateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
 
 
 class GroupListCreateView(ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
@@ -158,6 +168,9 @@ class GroupListCreateView(ListCreateAPIView):
 
 
 class GroupDetailView(RetrieveDestroyAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     lookup_field = 'slug'
@@ -167,13 +180,16 @@ class ProductListCreateView(ListCreateAPIView):
     queryset = Product.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = ProductSerializer
-    authentication_classes = [BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
 
     def get_serializer_context(self):
         return {'request': self.request}
 
 
 class ProductCreateAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, *args, **kwargs):
@@ -190,37 +206,57 @@ class ProductCreateAPIView(APIView):
 
 
 class ProductDetailView(RetrieveUpdateDestroyAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     lookup_field = 'slug'
 
 
 class AllProductsView(ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 
 class ImageListApiView(ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Image.objects.all()
     serializer_class = ProductImageSerializer
 
 
 class AttributeKeyListCreateView(ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = AttributeKey.objects.all()
     serializer_class = AttributeKeySerializer
 
 
 class AttributeValueListCreateView(ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = AttributeValue.objects.all()
     serializer_class = AttributeValueSerializer
 
 
 class ProductAttributeListCreateView(ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = ProductAttribute.objects.all()
     serializer_class = ProductAttributeSerializer
 
 
 class RegisterView(generics.CreateAPIView):
+    authentication_classes = [JWTAuthentication]
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AllowAny,)
