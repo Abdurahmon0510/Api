@@ -3,7 +3,7 @@ from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 
 from olcha.views import CategoryListCreateView, CategoryDetailView, ProductDetailView, \
-    GroupListCreateView, GroupDetailView, ProductListCreateView, ProductCreateAPIView, AllProductsView, \
+    GroupListCreateView, GroupDetailView, ProductListCreateView, \
     ImageListApiView, AttributeKeyListCreateView, AttributeValueListCreateView, ProductAttributeListCreateView, \
     RegisterView, CustomAuthToken, LogoutView
 
@@ -16,8 +16,6 @@ urlpatterns = [
          name='product_list_create'),
     path('api/category/<slug:category_slug>/group/<slug:group_slug>/product/<slug:slug>/', ProductDetailView.as_view(),
          name='product_detail'),
-    path('productcreate/', ProductCreateAPIView.as_view(), name='product_create'),
-    path('all-products/', AllProductsView.as_view(), name='all_products'),
     path('all-images/', ImageListApiView.as_view(), name='all_images'),
     path('api/attribute-keys/', AttributeKeyListCreateView.as_view(), name='attribute_key_list_create'),
     path('api/attribute-values/', AttributeValueListCreateView.as_view(), name='attribute_value_list_create'),

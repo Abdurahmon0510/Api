@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.authtoken.admin import User
+from django.contrib.auth.models import User
 
 from olcha.serializers import UserSerializer
 from post.models import Post
@@ -10,18 +10,20 @@ class PostSerializer(serializers.ModelSerializer):
     user_info = serializers.SerializerMethodField()
 
     def get_user_info(self, obj):
-        user_info = {
+        return {
             'username': obj.user.username,
             'user_id': obj.user.id,
             'is_staff': obj.user.is_staff,
         }
-        return user_info
+
     class Meta:
         model = Post
         fields = '__all__'
+        read_only_fields = ['user']
 
-class UserSerializer(serializers.ModelSerializer):
-      user = UserSerializer(many=False, read_only=True)
-      class Meta:
-           model = User
-           fields = '__all__'
+class UsersSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = '__all__'

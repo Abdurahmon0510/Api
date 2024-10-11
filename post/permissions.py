@@ -12,7 +12,7 @@ class IsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        if obj.user == request.user and request.user.username == 'abdurahmon':
+        if obj.user == request.user and request.user.username == 'anna':
             if request.method in ['PUT', 'PATCH']:
                 return False
 

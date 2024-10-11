@@ -33,7 +33,13 @@ class Category(BaseModel):
     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)
     image = models.ImageField(upload_to='olcha/%Y/%m/%d/', blank=True, null=True)
 
+
+
+
     class Meta:
+        indexes = [
+            models.Index(fields=['title']),
+        ]
         verbose_name_plural = 'Categories'
 
     def __str__(self):

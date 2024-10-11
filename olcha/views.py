@@ -1,231 +1,100 @@
-# from django.contrib.auth.models import User
-# from django.http import JsonResponse
-# from rest_framework import status
-#
-# from rest_framework.permissions import IsAuthenticated, AllowAny
-# from rest_framework.response import Response
-# from rest_framework.views import APIView
-#
-# from olcha.models import Book
 from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.db.models import Prefetch
 from rest_framework import status, generics
-from rest_framework.authentication import BasicAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, \
-    RetrieveUpdateAPIView, RetrieveDestroyAPIView, ListAPIView
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
-# # Create your views here.
-# def index(request):
-#     data = {
-#         'message': 'Success',
-#         'status_code': 201,
-#         'user': 'john'
-#     }
-#     return JsonResponse(data)
-#
-#
-# class UserList(APIView):
-#     permission_classes = (AllowAny,)
-#
-#     def get(self, request):
-#         # usernames = [user.username for user in User.objects.all()]
-#         data = [
-#             {
-#                 user.username:
-#                     {
-#                         'username': user.username,
-#                         'is_active': user.is_active,
-#                         'is_staff': user.is_staff
-#
-#                     }
-#             }
-#             for user in User.objects.all()
-#         ]
-#         return Response({'data': data})
-#
-#
-# class BookListAPIView(APIView):
-#     def get(self, request, *args, **kwargs):
-#         books = Book.objects.all()
-#         book_list = []
-#
-#         for olcha in books:
-#             book_data = {
-#                 olcha.title: {
-#                     "published_date": olcha.published_date,
-#                     "pages": olcha.pages,
-#                     "cover_image": olcha.cover_image.url if olcha.cover_image else None,
-#                     "description": olcha.description
-#                 }
-#             }
-#             book_list.append(book_data)
-#
-#         return Response(book_list, status=status.HTTP_200_OK)
-#
-#
-# class BookCreateAPIView(APIView):
-#       def get(self,request):
-#           books = Book.objects.all()
-#           serializer = BookSerializer(books, many=True)
-#           return Response(serializer.data, status=status.HTTP_200_OK)
-#
-#       def post(self,request):
-#           serializer = BookSerializer(data=request.data)
-#           if serializer.is_valid():
-#               serializer.save()
-#               data = {
-#                   'success': True,
-#                   'message': 'Book created successfully',
-#               }
-#               return JsonResponse(data, status=status.HTTP_201_CREATED)
-#           return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from .models import Category, Group, Product, Image, AttributeKey, AttributeValue, ProductAttribute
 from .serializers import CategorySerializer, ProductSerializer, GroupSerializer, ProductImageSerializer, \
     AttributeKeySerializer, AttributeValueSerializer, ProductAttributeSerializer, UserSerializer
 
 
-#
-# class CategoryListCreateView(APIView):
-#
-#     def get(self, request):
-#         categories = Category.objects.all()
-#         serializer = CategorySerializer(categories, many=True, context={'request': request})
-#         return Response(serializer.data)
-#
-#     def post(self, request):
-#         serializer = CategorySerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#
-# class CategoryDetailView(APIView):
-#
-#     def get(self, request, pk):
-#         try:
-#             category = Category.objects.get(pk=pk)
-#         except Category.DoesNotExist:
-#             return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
-#         serializer = CategorySerializer(category)
-#         return Response(serializer.data)
-#
-#     def put(self, request, pk):
-#         try:
-#             category = Category.objects.get(pk=pk)
-#         except Category.DoesNotExist:
-#             return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
-#
-#         serializer = CategorySerializer(category, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#     def delete(self, request, pk):
-#         try:
-#             category = Category.objects.get(pk=pk)
-#         except Category.DoesNotExist:
-#             return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
-#         category.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class CategoryListCreateView(ListAPIView):
+class CategoryListCreateView(ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    queryset = Category.objects.all()
+    permission_classes = [AllowAny]
     serializer_class = CategorySerializer
+
+    def get_queryset(self):
+        cache_key = 'categories_list'
+        queryset = cache.get(cache_key)
+        if queryset is None:
+            queryset = Category.objects.all()
+            cache.set(cache_key, queryset, timeout=300)
+        return queryset
 
 
 class CategoryDetailView(RetrieveUpdateAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = [AllowAny]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 class GroupListCreateView(ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    queryset = Group.objects.all()
+    permission_classes = [AllowAny]
     serializer_class = GroupSerializer
 
     def get_queryset(self):
-        category_slug = self.kwargs['category_slug']
-        return Group.objects.filter(category__slug=category_slug)
+        cache_key = 'groups_list'
+        queryset = cache.get(cache_key)
+        if queryset is None:
+            queryset = Group.objects.all()
+            cache.set(cache_key, queryset, timeout=300)
+        return queryset
 
 
-class GroupDetailView(RetrieveDestroyAPIView):
+class GroupDetailView(RetrieveUpdateAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = [AllowAny]
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     lookup_field = 'slug'
 
 
 class ProductListCreateView(ListCreateAPIView):
-    queryset = Product.objects.all()
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [AllowAny]
     serializer_class = ProductSerializer
-    authentication_classes = [JWTAuthentication]
-
-    def get_serializer_context(self):
-        return {'request': self.request}
-
-
-class ProductCreateAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    parser_classes = [MultiPartParser, FormParser]
-
-    def post(self, request, *args, **kwargs):
-        serializer = ProductSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
-        group_slug = self.kwargs['group_slug']
-        return Product.objects.filter(group__slug=group_slug)
+        cache_key = 'products_list'
+        queryset = cache.get(cache_key)
+        if queryset is None:
+            queryset = Product.objects.select_related('group').all()
+            queryset = queryset.select_related('group__category').all()
+            cache.set(cache_key, queryset, timeout=300)
+        return queryset
 
 
-class ProductDetailView(RetrieveUpdateDestroyAPIView):
+class ProductDetailView(RetrieveUpdateAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = [AllowAny]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     lookup_field = 'slug'
 
-
-class AllProductsView(ListAPIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+    def get_queryset(self):
+        queryset = Product.objects.select_related('group').all()
+        queryset = queryset.select_related('group__category').all()
+        return queryset
 
 
 class ImageListApiView(ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
     queryset = Image.objects.all()
     serializer_class = ProductImageSerializer
 
@@ -233,7 +102,6 @@ class ImageListApiView(ListAPIView):
 class AttributeKeyListCreateView(ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
     queryset = AttributeKey.objects.all()
     serializer_class = AttributeKeySerializer
 
@@ -241,7 +109,6 @@ class AttributeKeyListCreateView(ListCreateAPIView):
 class AttributeValueListCreateView(ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
     queryset = AttributeValue.objects.all()
     serializer_class = AttributeValueSerializer
 
@@ -249,14 +116,12 @@ class AttributeValueListCreateView(ListCreateAPIView):
 class ProductAttributeListCreateView(ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
     queryset = ProductAttribute.objects.all()
     serializer_class = ProductAttributeSerializer
 
 
 class RegisterView(generics.CreateAPIView):
     authentication_classes = [JWTAuthentication]
-
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AllowAny,)
@@ -264,8 +129,7 @@ class RegisterView(generics.CreateAPIView):
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
